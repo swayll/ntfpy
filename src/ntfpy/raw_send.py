@@ -59,7 +59,10 @@ def raw_send(server: str, topic: str, message: str, auth: Optional[str] = None, 
 
 def raw_send_message(server: str, topic: str, message: NTFYPushMessage, auth: Optional[str] = None) -> requests.Response:
     headers: Mapping[str, str] = {}
-    if auth is not None:
-        headers["Authorization"] = f"Basic {base64.b64encode(auth.encode('ascii')).decode('ascii')}"
+    if auth is not None and any([":" in auth, auth.startswith("tk_")]):
+        if ":" in auth:
+            headers["Authorization"] = f"Basic {base64.b64encode(auth.encode('ascii')).decode('ascii')}"
+        elif auth.startswith("tk_"):
+            headers["Authorization"] = f"Bearer {auth}"
     data = message.json(topic)
     return requests.post(f"{server}/", headers = headers, json = data)
